@@ -911,17 +911,19 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
     // TODO - never used at the moment, always CMD_SIZE
     slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
+    // Initialize stlink version (sl->version)
+    stlink_version(sl);
+
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
         ILOG("-- exit_dfu_mode\n");
         stlink_exit_dfu_mode(sl);
     }
 
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-        stlink_enter_swd_mode(sl);
+    if (reset) {
+        if( sl->version.stlink_v > 1 ) stlink_jtag_reset(sl, 0);
     }
-	
-    // Initialize stlink version (sl->version)	
-    stlink_version(sl);	
+
+    stlink_enter_swd_mode(sl);
 
     // Set the stlink clock speed (default is 1800kHz)
     stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);    
